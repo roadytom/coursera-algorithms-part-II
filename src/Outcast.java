@@ -14,10 +14,17 @@ public class Outcast {
         int maxDistance = -1;
         String maxDistanceNoun = null;
         for (String noun : nouns) {
+            if (!wordNet.isNoun(noun)) {
+                continue;
+            }
             int distanceSum = 0;
             for (String otherNoun : nouns) {
+                if (!wordNet.isNoun(otherNoun)) {
+                    continue;
+                }
                 distanceSum += wordNet.distance(noun, otherNoun);
             }
+//            StdOut.printf("distanceSum: %s -> %d\n", noun, distanceSum);
             if (distanceSum > maxDistance) {
                 maxDistance = distanceSum;
                 maxDistanceNoun = noun;

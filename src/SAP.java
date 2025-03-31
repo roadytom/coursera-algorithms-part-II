@@ -1,4 +1,5 @@
-import edu.princeton.cs.algs4.*;
+
+import edu.princeton.cs.algs4.Digraph;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -10,13 +11,12 @@ import java.util.stream.Stream;
 public class SAP {
     private final Digraph graph;
 
-    public Digraph getGraph() {
-        return graph;
-    }
-
     // constructor takes a digraph (not necessarily a DAG)
     public SAP(Digraph G) {
-        this.graph = G;
+        if (G == null) {
+            throw new IllegalArgumentException("graph cannot be null");
+        }
+        this.graph = new Digraph(G);
     }
 
     // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
@@ -41,23 +41,32 @@ public class SAP {
     }
 
     private SAPResult findSapResult(Iterable<Integer> v, Iterable<Integer> w) {
+        if (v == null || w == null) {
+            throw new IllegalArgumentException("cannot be null");
+        }
         List<Integer> vDistances = Stream.generate(() -> -1).limit(graph.V()).collect(Collectors.toList());
         List<Integer> wDistances = Stream.generate(() -> -1).limit(graph.V()).collect(Collectors.toList());
         Queue<Integer> vQueue = new ArrayDeque<>();
         Queue<Integer> wQueue = new ArrayDeque<>();
         v.forEach(x -> {
-            if (x >= graph.V() || x < 0) {
+            if (x == null || x >= graph.V() || x < 0) {
                 throw new IllegalArgumentException("x is out of range");
             }
             vDistances.set(x, 0);
-            vQueue.offer(x);
+
+            if (!vQueue.offer(x)) {
+                throw new IllegalStateException("cannot add to the queue");
+            }
         });
         w.forEach(x -> {
-            if (x >= graph.V() || x < 0) {
+            if (x == null || x >= graph.V() || x < 0) {
                 throw new IllegalArgumentException("x is out of range");
             }
             wDistances.set(x, 0);
-            wQueue.offer(x);
+
+            if (!wQueue.offer(x)) {
+                throw new IllegalStateException("cannot add to the queue");
+            }
         });
         SAPResult sapResult = new SAPResult(-1, Integer.MAX_VALUE);
         var distances = List.of(vDistances, wDistances);
@@ -75,16 +84,18 @@ public class SAP {
                     updateNeighborDistanceAndAddQueue(queue, distance, poppedElement);
                 }
             });
-            Stream.of(vQueue, wQueue).forEach(queue -> {
-
-            });
         }
         return sapResult;
     }
 
     private void updateNeighborDistanceAndAddQueue(Queue<Integer> queue, List<Integer> distances, int currentElement) {
         for (int neighbor : graph.adj(currentElement)) {
-            queue.offer(neighbor);
+            if (distances.get(neighbor) != -1) {
+                continue;
+            }
+            if (!queue.offer(neighbor)) {
+                throw new IllegalStateException("cannot add to the queue");
+            }
             distances.set(neighbor, distances.get(currentElement) + 1);
         }
     }
@@ -95,16 +106,16 @@ public class SAP {
 
     // do unit testing of this class
     public static void main(String[] args) {
-        In in = new In(args[0]);
-        Digraph G = new Digraph(in);
-        SAP sap = new SAP(G);
-        while (!StdIn.isEmpty()) {
-            int v = StdIn.readInt();
-            int w = StdIn.readInt();
-            int length = sap.length(v, w);
-            int ancestor = sap.ancestor(v, w);
-            StdOut.printf("length = %d, ancestor = %d\n", length, ancestor);
-        }
+//        In in = new In(args[0]);
+//        Digraph G = new Digraph(in);
+//        SAP sap = new SAP(G);
+//        while (!StdIn.isEmpty()) {
+//            int v = StdIn.readInt();
+//            int w = StdIn.readInt();
+//            int length = sap.length(v, w);
+//            int ancestor = sap.ancestor(v, w);
+//            StdOut.printf("length = %d, ancestor = %d\n", length, ancestor);
+//        }
     }
 
     private static class SAPResult {
